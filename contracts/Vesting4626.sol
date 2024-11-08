@@ -48,10 +48,17 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     event SalaryReleased(address indexed creator, uint256 amount);
     event SalaryUpdateScheduled(
         address indexed creator,
-        uint256 amount,
-        uint256 updateTime
+        uint256 updateTime,
+        uint256 currentAmount,
+        uint256 pendingAmount
     );
-    event SalaryUpdateFinished(address indexed creator, uint256 amount);
+    event SalaryUpdateFinished(
+        address indexed creator,
+        uint256 amount,
+        uint256 timestamp,
+        uint256 totalAccumulatedSalary,
+        uint256 totalSalary
+    );
     event CapitalIncreased(uint256 amount);
     event CapitalDecreased(uint256 amount);
     event TotalAccumulatedSalaryUpdated(
@@ -164,8 +171,9 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
         emit SalaryUpdateScheduled(
             creator_,
-            amount,
-            updateDataOf[creator_].updateTime
+            updateDataOf[creator_].updateTime,
+            spsToSalary(salaryDataOf[creator_].currentSps),
+            amount
         );
     }
 
@@ -228,7 +236,10 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
         emit SalaryUpdateFinished(
             creator_,
-            spsToSalary(salaryDataOf[creator_].currentSps)
+            spsToSalary(salaryDataOf[creator_].currentSps),
+            block.timestamp,
+            totalAccumulatedSalary(),
+            spsToSalary(totalSps)
         );
     }
 
