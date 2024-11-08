@@ -56,23 +56,27 @@ contract V4626Router {
         string memory name,
         string memory symbol
     ) public returns (address company, address sponsor) {
-        // new a company
+        // new a company, use "Company" suffix for name and "COMP" for symbol
+        string memory companyName = string(abi.encodePacked(name, " Company"));
+        string memory companySymbol = string(abi.encodePacked(symbol, "C"));
         company = _paymentSplitFactory.deployCompany(
             address(this),
             _asset,
             msg.sender,
-            name,
-            symbol
+            companyName,
+            companySymbol
         );
-        // new a sponsor
+        // new a sponsor, use "Sponsor" suffix for name and "SPO" for symbol
+        string memory sponsorName = string(abi.encodePacked(name, " Sponsor"));
+        string memory sponsorSymbol = string(abi.encodePacked(symbol, "S"));
         sponsor = _publicV4626Factory.deploySponsor(
             address(this),
             _asset,
             msg.sender,
             0,
             company,
-            name,
-            symbol
+            sponsorName,
+            sponsorSymbol
         );
         // update data
         isCreator[msg.sender] = true;
