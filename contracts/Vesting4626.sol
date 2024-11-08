@@ -61,10 +61,6 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     );
     event CapitalIncreased(uint256 amount);
     event CapitalDecreased(uint256 amount);
-    event TotalAccumulatedSalaryUpdated(
-        uint256 newAccumulatedSalary,
-        uint256 timestamp
-    );
     event ClaimProcessed(address company, uint256 payment);
     event AllClaimsProcessed(address[] companies, uint256 totalPayment);
 
@@ -249,10 +245,6 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             totalSps *
             (block.timestamp - lastReleaseAt);
         lastReleaseAt = block.timestamp;
-        emit TotalAccumulatedSalaryUpdated(
-            oldTotalAccumulatedSalary,
-            block.timestamp
-        );
     }
 
     // call claim function in contract paymentSplit
