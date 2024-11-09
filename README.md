@@ -3,6 +3,6 @@ This smart contract protocol attempts to build a decentralized company, describi
 
 
 TODO：
-1. permit
-2. Math
-3. front-end
+1. - [x] permit
+2. - [x] Math
+3. - [ ] front-end
