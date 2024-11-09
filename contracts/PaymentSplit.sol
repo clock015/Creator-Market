@@ -112,8 +112,11 @@ contract PaymentSplit is ERC20 {
         uint256 totalHeight = getTotalHeight();
         // Beneficiary's entitled amount = total entitled amount - amount already claimed
         return
-            ((totalHeight - height[_account]) * balanceOf(_account)) /
-            totalSupply();
+            Math.mulDiv(
+                (totalHeight - height[_account]),
+                balanceOf(_account),
+                totalSupply()
+            );
     }
 
     function getTotalHeight() public view returns (uint256) {

@@ -8,6 +8,7 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import {V4626Router} from "./V4626Router.sol";
 
@@ -93,17 +94,16 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     function releasable(
         address creator_
     ) public view virtual returns (uint256) {
-        return
-            salaryDataOf[creator_].currentSps *
-            (block.timestamp - salaryDataOf[creator_].lastReleaseAt);
+        uint256 timeElapsed = block.timestamp -
+            salaryDataOf[creator_].lastReleaseAt;
+        return Math.mulDiv(salaryDataOf[creator_].currentSps, timeElapsed, 1);
     }
 
     // The total historically accumulated salary within the protocol
     function totalAccumulatedSalary() public view returns (uint256) {
+        uint256 timeElapsed = block.timestamp - lastReleaseAt;
         return
-            oldTotalAccumulatedSalary +
-            totalSps *
-            (block.timestamp - lastReleaseAt);
+            oldTotalAccumulatedSalary + Math.mulDiv(totalSps, timeElapsed, 1);
     }
 
     // Total pending salary amount within the protocol
@@ -113,19 +113,20 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // Convert monthly salary to per-second salary
     function salaryToSps(uint256 salary) public pure returns (uint256) {
-        return salary / 30 days;
+        return Math.mulDiv(salary, 1, 30 days);
     }
 
     // Convert per-second salary to monthly salary
     function spsToSalary(uint256 sps) public pure returns (uint256) {
-        return sps * 30 days;
+        return Math.mulDiv(sps, 30 days, 1);
     }
 
     /** @dev See {IERC4626-totalAssets}. */
     function totalAssets() public view virtual override returns (uint256) {
-        if (IERC20(asset()).balanceOf(address(this)) >= totalPendingSalary()) {
-            return
-                IERC20(asset()).balanceOf(address(this)) - totalPendingSalary();
+        uint256 balance = IERC20(asset()).balanceOf(address(this));
+        uint256 pendingSalary = totalPendingSalary();
+        if (balance >= pendingSalary) {
+            return balance - pendingSalary;
         }
         return 0;
     }
@@ -241,9 +242,8 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // update Total Accumulated Salary
     function updateOldTotalAccumulatedSalary() public {
-        oldTotalAccumulatedSalary +=
-            totalSps *
-            (block.timestamp - lastReleaseAt);
+        uint256 timeElapsed = block.timestamp - lastReleaseAt;
+        oldTotalAccumulatedSalary += Math.mulDiv(totalSps, timeElapsed, 1);
         lastReleaseAt = block.timestamp;
     }
 

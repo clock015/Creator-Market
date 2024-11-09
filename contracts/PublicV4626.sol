@@ -45,9 +45,19 @@ contract PublicV4626 is Vesting4626 {
     }
 
     function _checkTotalShares(uint256 newTotalShares) internal view {
+        uint256 minAllowedShares = Math.mulDiv(
+            lastTotalShares,
+            10000,
+            allowedDeviation
+        );
+        uint256 maxAllowedShares = Math.mulDiv(
+            lastTotalShares,
+            allowedDeviation,
+            10000
+        );
         require(
-            newTotalShares <= (lastTotalShares * allowedDeviation) / 10000 &&
-                newTotalShares >= (lastTotalShares * 10000) / allowedDeviation,
+            newTotalShares >= minAllowedShares &&
+                newTotalShares <= maxAllowedShares,
             "TotalShares deviation exceeds 10%"
         );
     }
@@ -58,31 +68,34 @@ contract PublicV4626 is Vesting4626 {
     ) public view virtual override returns (uint256) {
         return
             _convertToAssets(
-                (lastTotalShares * allowedDeviation) / 10000 - totalSupply(),
+                Math.mulDiv(lastTotalShares, allowedDeviation, 10000) -
+                    totalSupply(),
                 Math.Rounding.Floor
             );
     }
 
     /** @dev See {IERC4626-maxMint}. */
     function maxMint(address) public view virtual override returns (uint256) {
-        return (lastTotalShares * allowedDeviation) / 10000 - totalSupply();
+        return
+            Math.mulDiv(lastTotalShares, allowedDeviation, 10000) -
+            totalSupply();
     }
 
     /** @dev See {IERC4626-maxWithdraw}. */
     function maxWithdraw(
         address owner
     ) public view virtual override returns (uint256) {
-        if (
-            totalSupply() - (lastTotalShares * 10000) / allowedDeviation >
-            balanceOf(owner)
-        ) {
+        uint256 minAllowedSupply = Math.mulDiv(
+            lastTotalShares,
+            10000,
+            allowedDeviation
+        );
+        if (totalSupply() - minAllowedSupply > balanceOf(owner)) {
             return _convertToAssets(balanceOf(owner), Math.Rounding.Floor);
         } else {
             return
                 _convertToAssets(
-                    totalSupply() -
-                        (lastTotalShares * 10000) /
-                        allowedDeviation,
+                    totalSupply() - minAllowedSupply,
                     Math.Rounding.Floor
                 );
         }
@@ -92,13 +105,15 @@ contract PublicV4626 is Vesting4626 {
     function maxRedeem(
         address owner
     ) public view virtual override returns (uint256) {
-        if (
-            totalSupply() - (lastTotalShares * 10000) / allowedDeviation >
-            balanceOf(owner)
-        ) {
+        uint256 minAllowedSupply = Math.mulDiv(
+            lastTotalShares,
+            10000,
+            allowedDeviation
+        );
+        if (totalSupply() - minAllowedSupply > balanceOf(owner)) {
             return balanceOf(owner);
         } else {
-            return totalSupply() - (lastTotalShares * 10000) / allowedDeviation;
+            return totalSupply() - minAllowedSupply;
         }
     }
 
