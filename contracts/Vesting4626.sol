@@ -9,10 +9,11 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 import {V4626Router} from "./V4626Router.sol";
 
-contract Vesting4626 is Context, Ownable, ERC4626 {
+contract Vesting4626 is Context, Ownable, ERC4626, ERC20Permit {
     V4626Router _router;
     // Company of this contract
     address _company;
@@ -73,7 +74,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         address company_,
         string memory name,
         string memory symbol
-    ) Ownable(owner_) ERC4626(token_) ERC20(name, symbol) {
+    ) Ownable(owner_) ERC4626(token_) ERC20(name, symbol) ERC20Permit(name) {
         _router = V4626Router(router_);
         _company = company_;
         uint256 sps = salaryToSps(amount);
