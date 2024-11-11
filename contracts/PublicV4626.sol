@@ -5,7 +5,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Vesting4626} from "./Vesting4626.sol";
-import {V4626Router} from "./V4626Router.sol";
+import {CreatorMarketRouter} from "./CreatorMarketRouter.sol";
 
 contract PublicV4626 is Vesting4626 {
     // whether this contract is publicly listed

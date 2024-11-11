@@ -7,12 +7,12 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
-import {V4626Router} from "./V4626Router.sol";
+import {CreatorMarketRouter} from "./CreatorMarketRouter.sol";
 
 contract PaymentSplit is ERC20, ERC20Permit {
     using Math for uint256;
     IERC20 public immutable _asset;
-    V4626Router immutable _router;
+    CreatorMarketRouter immutable _router;
 
     uint256 public totalReleased; // Total amount released to beneficiaries
 
@@ -30,7 +30,7 @@ contract PaymentSplit is ERC20, ERC20Permit {
         string memory name,
         string memory symbol
     ) ERC20(name, symbol) ERC20Permit(name) {
-        _router = V4626Router(router_);
+        _router = CreatorMarketRouter(router_);
         _asset = asset_;
         _mint(owner, 1e18);
     }

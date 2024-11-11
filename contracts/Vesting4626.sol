@@ -11,10 +11,10 @@ import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.so
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
-import {V4626Router} from "./V4626Router.sol";
+import {CreatorMarketRouter} from "./CreatorMarketRouter.sol";
 
 contract Vesting4626 is Context, Ownable, ERC4626 {
-    V4626Router _router;
+    CreatorMarketRouter _router;
     // Company of this contract
     address _company;
     // total salary per second
@@ -75,7 +75,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         string memory name,
         string memory symbol
     ) Ownable(owner_) ERC4626(token_) ERC20(name, symbol) {
-        _router = V4626Router(router_);
+        _router = CreatorMarketRouter(router_);
         _company = company_;
         uint256 sps = salaryToSps(amount);
         salaryDataOf[owner_].currentSps = sps;
