@@ -9,7 +9,7 @@ import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.so
 import {IPublicV4626Factory} from "./interfaces/IPublicV4626Factory.sol";
 import {IPaymentSplitFactory} from "./interfaces/IPaymentSplitFactory.sol";
 
-contract V4626Router {
+contract CreatorMarketRouter {
     // Factory
     IPublicV4626Factory _publicV4626Factory;
     IPaymentSplitFactory _paymentSplitFactory;
