@@ -26,7 +26,7 @@ contract CreatorMarketRouter {
     // equity of company
     mapping(address => address) public equityOf;
     // companiesOf of founder
-    mapping(address => address) public companiesFoundedBy;
+    mapping(address => address[]) public companiesFoundedBy;
 
     // Events
     event SponsorUpdated(

@@ -192,7 +192,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         );
     }
 
-    function _validateUpdateSalary() internal view {
+    function _validateUpdateSalary() internal {
         if (pendingSps <= int256(totalSps) / 10) {
             return; // If true, exit early
         }
