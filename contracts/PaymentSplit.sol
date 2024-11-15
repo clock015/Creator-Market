@@ -89,6 +89,8 @@ contract PaymentSplit is ERC20, ERC20Permit {
 
     // Beneficiary claims the allocated funds
     function claim(address _account) public virtual returns (uint256) {
+        callRelease();
+
         uint256 payment = 0;
         // Check if the beneficiary is valid
         if (balanceOf(_account) > 0) {

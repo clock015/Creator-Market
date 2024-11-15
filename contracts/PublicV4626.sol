@@ -167,6 +167,11 @@ contract PublicV4626 is Vesting4626 {
         _checkTotalShares(totalSupply() + shares); // checkTotalShares
         _updateTotalShares(); // update lastTotalShares
         super._deposit(caller, receiver, assets, shares);
+        emit TotalAssetsAndSupplyUpdated(
+            block.timestamp,
+            totalAssets(),
+            totalSupply()
+        );
     }
 
     function _withdraw(
@@ -179,5 +184,10 @@ contract PublicV4626 is Vesting4626 {
         _checkTotalShares(totalSupply() - shares); // checkTotalShares
         _updateTotalShares(); // update lastTotalShares
         super._withdraw(caller, receiver, owner, assets, shares);
+        emit TotalAssetsAndSupplyUpdated(
+            block.timestamp,
+            totalAssets(),
+            totalSupply()
+        );
     }
 }

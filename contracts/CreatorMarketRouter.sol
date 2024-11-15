@@ -15,8 +15,6 @@ contract CreatorMarketRouter {
     IPaymentSplitFactory _paymentSplitFactory;
     // asset
     IERC20 public immutable _asset;
-    // all creator
-    mapping(address => bool) public isCreator;
     // whether address is company
     mapping(address => bool) public isCompany;
     // whether address is sponsor
@@ -27,6 +25,8 @@ contract CreatorMarketRouter {
     mapping(address => address[]) public companiesOf;
     // equity of company
     mapping(address => address) public equityOf;
+    // companiesOf of founder
+    mapping(address => address) public companiesFoundedBy;
 
     // Events
     event SponsorUpdated(
@@ -79,10 +79,11 @@ contract CreatorMarketRouter {
             sponsorSymbol
         );
         // update data
-        isCreator[msg.sender] = true;
         isCompany[company] = true;
         isSponsor[sponsor] = true;
         equityOf[company] = sponsor;
+        companiesFoundedBy[msg.sender].push(company);
+        companiesOf[msg.sender].push(company);
     }
 
     // called by sponsor

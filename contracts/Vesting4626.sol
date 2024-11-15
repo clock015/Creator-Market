@@ -62,9 +62,14 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         uint256 totalSalary
     );
     event CapitalIncreased(uint256 amount);
-    event CapitalDecreased(uint256 amount);
     event ClaimProcessed(address company, uint256 payment);
     event AllClaimsProcessed(address[] companies, uint256 totalPayment);
+
+    event TotalAssetsAndSupplyUpdated(
+        uint256 time,
+        uint256 totalAssets,
+        uint256 totalSupply
+    );
 
     constructor(
         address router_,
@@ -86,10 +91,16 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         updateDataOf[owner_].expectedSps = sps;
         // owner shares
         _mint(owner_, 10 ** (_decimalsOffset() + 4));
+
+        emit TotalAssetsAndSupplyUpdated(
+            block.timestamp,
+            totalAssets(),
+            totalSupply()
+        );
     }
 
     function _decimalsOffset() internal pure override returns (uint8) {
-        return 12;
+        return 8;
     }
 
     function releasable(
@@ -140,6 +151,12 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         totalReleased += amount;
         SafeERC20.safeTransfer(IERC20(asset()), creator_, amount);
         emit SalaryReleased(creator_, amount);
+        emit TotalAssetsAndSupplyUpdated(
+            block.timestamp,
+            totalAssets(),
+            totalSupply()
+        );
+
         return amount;
     }
 
@@ -176,14 +193,15 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     }
 
     function _validateUpdateSalary() internal view {
-        require(
-            pendingSps <= int256(totalSps) / 10 ||
-                pendingSps <= int256(minPendingSps),
-            "salary is too high"
-        );
-        //
+        if (pendingSps <= int256(totalSps) / 10) {
+            return; // If true, exit early
+        }
+        // The owner's capital can be used to increase employee salaries, but it can only be used once
+        require(pendingSps <= int256(minPendingSps), "salary is too high");
+        minPendingSps -= uint256(pendingSps);
     }
 
+    // The owner's capital can be used to increase employee salaries, but it can only be used once
     function increaseRegisteredCapital(uint256 amount) external onlyOwner {
         SafeERC20.safeTransferFrom(
             IERC20(asset()),
@@ -194,13 +212,11 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         uint256 sps = salaryToSps(amount);
         minPendingSps += sps;
         emit CapitalIncreased(amount);
-    }
-
-    function decreaseRegisteredCapital(uint256 amount) external onlyOwner {
-        SafeERC20.safeTransfer(IERC20(asset()), msg.sender, amount);
-        uint256 sps = salaryToSps(amount);
-        minPendingSps -= sps;
-        emit CapitalDecreased(amount);
+        emit TotalAssetsAndSupplyUpdated(
+            block.timestamp,
+            totalAssets(),
+            totalSupply()
+        );
     }
 
     // The salary will be officially updated after the waiting period expires
@@ -239,6 +255,12 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             totalAccumulatedSalary(),
             spsToSalary(totalSps)
         );
+
+        emit TotalAssetsAndSupplyUpdated(
+            block.timestamp,
+            totalAssets(),
+            totalSupply()
+        );
     }
 
     // update Total Accumulated Salary
@@ -257,6 +279,12 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             uint256 payment = abi.decode(data, (uint256));
             emit ClaimProcessed(_company, payment);
         }
+
+        emit TotalAssetsAndSupplyUpdated(
+            block.timestamp,
+            totalAssets(),
+            totalSupply()
+        );
     }
 
     // call all claim function in contract paymentSplit
@@ -275,5 +303,11 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             }
         }
         emit AllClaimsProcessed(companies, totalPayment);
+
+        emit TotalAssetsAndSupplyUpdated(
+            block.timestamp,
+            totalAssets(),
+            totalSupply()
+        );
     }
 }
