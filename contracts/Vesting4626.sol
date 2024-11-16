@@ -16,7 +16,7 @@ import {ICreatorMarketRouter} from "./interfaces/ICreatorMarketRouter.sol";
 contract Vesting4626 is Context, Ownable, ERC4626 {
     ICreatorMarketRouter _router;
     // Company of this contract
-    address _company;
+    address private _company;
     // total salary per second
     uint256 public totalSps;
     // pending changes in salary per second
@@ -26,9 +26,9 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     // total released funds
     uint256 public totalReleased;
     // total accumulated salary over time
-    uint256 public oldTotalAccumulatedSalary;
+    uint256 private oldTotalAccumulatedSalary;
     // last timestamp of total accumulated salary update
-    uint256 public lastReleaseAt;
+    uint256 private lastReleaseAt;
     // waiting time before salary adjustment
     uint256 public waitingTime = 30 days;
 
@@ -40,7 +40,6 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // update salary data
     struct UpdateData {
-        bool waitUpdate;
         uint256 expectedSps;
         uint256 updateTime;
     }
@@ -87,7 +86,6 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         salaryDataOf[owner_].lastReleaseAt = block.timestamp;
         lastReleaseAt = block.timestamp;
         totalSps = sps;
-        updateDataOf[owner_].waitUpdate = false;
         updateDataOf[owner_].expectedSps = sps;
         // owner shares
         _mint(owner_, 10 ** (_decimalsOffset() + 4));
@@ -162,7 +160,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // Schedule salary update
     function updateSalary(address creator_, uint256 amount) public onlyOwner {
-        require(!updateDataOf[creator_].waitUpdate, "salary is waiting update");
+        require(!updateDataOf[creator_].updateTime, "salary is waiting update");
         uint256 salary = salaryToSps(amount);
         require(
             salary != salaryDataOf[creator_].currentSps,
@@ -180,7 +178,6 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
         _validateUpdateSalary();
 
-        updateDataOf[creator_].waitUpdate = true;
         updateDataOf[creator_].updateTime = block.timestamp + waitingTime;
         updateDataOf[creator_].expectedSps = salary;
 
@@ -221,7 +218,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // The salary will be officially updated after the waiting period expires
     function finishUpdate(address creator_) public {
-        require(updateDataOf[creator_].waitUpdate, "nothing need update");
+        require(updateDataOf[creator_].updateTime, "nothing need update");
         require(
             updateDataOf[creator_].updateTime <= block.timestamp,
             "Not time for update yet"
