@@ -221,7 +221,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // The salary will be officially updated after the waiting period expires
     function finishUpdate(address creator_) public {
-        require(updateDataOf[creator_].updateTime, "nothing need update");
+        require(updateDataOf[creator_].updateTime != 0, "nothing need update");
         require(
             updateDataOf[creator_].updateTime <= block.timestamp,
             "Not time for update yet"
