@@ -160,7 +160,10 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // Schedule salary update
     function updateSalary(address creator_, uint256 amount) public onlyOwner {
-        require(!updateDataOf[creator_].updateTime, "salary is waiting update");
+        require(
+            updateDataOf[creator_].updateTime == 0,
+            "salary is waiting update"
+        );
         uint256 salary = salaryToSps(amount);
         require(
             salary != salaryDataOf[creator_].currentSps,
