@@ -88,7 +88,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         totalSps = sps;
         updateDataOf[owner_].expectedSps = sps;
         // owner shares
-        _mint(owner_, 10 ** (_decimalsOffset() + 4));
+        _mint(owner_, 10 ** decimals());
 
         emit TotalAssetsAndSupplyUpdated(
             block.timestamp,
@@ -98,7 +98,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     }
 
     function _decimalsOffset() internal pure override returns (uint8) {
-        return 8;
+        return 10;
     }
 
     function releasable(

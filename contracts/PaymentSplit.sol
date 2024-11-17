@@ -32,7 +32,7 @@ contract PaymentSplit is ERC20, ERC20Permit {
     ) ERC20(name, symbol) ERC20Permit(name) {
         _router = CreatorMarketRouter(router_);
         _asset = asset_;
-        _mint(owner, 1e18);
+        _mint(owner, 10 ** decimals());
     }
 
     function transfer(
