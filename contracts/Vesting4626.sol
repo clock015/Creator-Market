@@ -98,7 +98,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     }
 
     function _decimalsOffset() internal pure override returns (uint8) {
-        return 10;
+        return 8;
     }
 
     function releasable(
