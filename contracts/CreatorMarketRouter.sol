@@ -18,13 +18,13 @@ contract CreatorMarketRouter {
     // whether address is sponsor
     mapping(address => bool) public isSponsor;
     // all sponsors of company
-    mapping(address => address[]) public sponsorsOf;
+    mapping(address => address[]) private sponsorsOf;
     // all companies of creator
-    mapping(address => address[]) public companiesOf;
+    mapping(address => address[]) private companiesOf;
     // equity of company
     mapping(address => address) public equityOf;
     // companiesOf of founder
-    mapping(address => address[]) public companiesFoundedBy;
+    mapping(address => address[]) private companiesFoundedBy;
 
     // Events
     event SponsorUpdated(
@@ -170,5 +170,11 @@ contract CreatorMarketRouter {
         address creator
     ) public view returns (address[] memory) {
         return companiesOf[creator];
+    }
+    
+    function getcompaniesFoundedBy(
+        address creator
+    ) public view returns (address[] memory) {
+        return companiesFoundedBy[creator];
     }
 }

@@ -24,13 +24,14 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     // minimum acceptable Salary
     uint256 public minPendingSps;
     // total released funds
-    uint256 public totalReleased;
+    uint256 private totalReleased;
     // total accumulated salary over time
     uint256 private oldTotalAccumulatedSalary;
     // last timestamp of total accumulated salary update
     uint256 private lastReleaseAt;
     // waiting time before salary adjustment
-    uint256 public waitingTime = 30 days;
+    // it should be 30 days, but now adjustment it to 1 days for testing 
+    uint256 private constant waitingTime = 1 days;
 
     struct SalaryData {
         uint256 currentSps;
@@ -56,13 +57,9 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     event SalaryUpdateFinished(
         address indexed creator,
         uint256 amount,
-        uint256 timestamp,
-        uint256 totalAccumulatedSalary,
-        uint256 totalSalary
+        uint256 timestamp
     );
     event CapitalIncreased(uint256 amount);
-    event ClaimProcessed(address company, uint256 payment);
-    event AllClaimsProcessed(address[] companies, uint256 totalPayment);
 
     event TotalAssetsAndSupplyUpdated(
         uint256 time,
@@ -135,8 +132,16 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     function totalAssets() public view virtual override returns (uint256) {
         uint256 balance = IERC20(asset()).balanceOf(address(this));
         uint256 pendingSalary = totalPendingSalary();
-        if (balance >= pendingSalary) {
-            return balance - pendingSalary;
+        uint256 claimableAmount = 0;
+        (bool success, bytes memory data) = _company.staticcall(
+            abi.encodeWithSignature("claimable(address)", address(this))
+        );
+        if (success) {
+            claimableAmount = abi.decode(data, (uint256));
+        }
+
+        if (balance + claimableAmount >= pendingSalary) {
+            return balance + claimableAmount - pendingSalary;
         }
         return 0;
     }
@@ -160,6 +165,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // Schedule salary update
     function updateSalary(address creator_, uint256 amount) public onlyOwner {
+        require(creator_ != _company, "can not release to company");
         require(
             updateDataOf[creator_].updateTime == 0,
             "salary is waiting update"
@@ -251,9 +257,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         emit SalaryUpdateFinished(
             creator_,
             spsToSalary(salaryDataOf[creator_].currentSps),
-            block.timestamp,
-            totalAccumulatedSalary(),
-            spsToSalary(totalSps)
+            block.timestamp
         );
 
         emit TotalAssetsAndSupplyUpdated(
@@ -272,13 +276,9 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // call claim function in contract paymentSplit
     function callClaim() public {
-        (bool success, bytes memory data) = _company.call(
+        (bool success, ) = _company.call(
             abi.encodeWithSignature("claim(address)", address(this))
         );
-        if (success) {
-            uint256 payment = abi.decode(data, (uint256));
-            emit ClaimProcessed(_company, payment);
-        }
 
         emit TotalAssetsAndSupplyUpdated(
             block.timestamp,
@@ -302,7 +302,6 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
                 totalPayment += payment;
             }
         }
-        emit AllClaimsProcessed(companies, totalPayment);
 
         emit TotalAssetsAndSupplyUpdated(
             block.timestamp,

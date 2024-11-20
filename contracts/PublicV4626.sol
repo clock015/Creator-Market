@@ -13,7 +13,7 @@ contract PublicV4626 is Vesting4626 {
     // lastTotalSupply
     uint256 public lastUpdated; // update time of last day
     uint256 public lastTotalShares; // totalShares value of last day
-    uint256 public constant TIME_INTERVAL = 1 days; // update every day
+    uint256 private constant TIME_INTERVAL = 1 days; // update every day
     uint256 public allowedDeviation = 11000; // 10%
 
     // Events
@@ -35,12 +35,6 @@ contract PublicV4626 is Vesting4626 {
     ) Vesting4626(router_, owner_, amount, _token, company, name, symbol) {
         lastUpdated = block.timestamp;
         lastTotalShares = totalSupply();
-    }
-
-    // List this contract publicly, and it cannot be reversed.
-    function turnPublic() public onlyOwner {
-        isPublic = true;
-        emit TurnPublicAt(block.timestamp);
     }
 
     function _checkTotalShares(uint256 newTotalShares) internal view {
@@ -121,6 +115,12 @@ contract PublicV4626 is Vesting4626 {
             lastTotalShares = totalSupply();
             lastUpdated = block.timestamp;
         }
+    }
+
+    // List this contract publicly, and it cannot be reversed.
+    function turnPublic() public onlyOwner {
+        isPublic = true;
+        emit TurnPublicAt(block.timestamp);
     }
 
     function deposit(

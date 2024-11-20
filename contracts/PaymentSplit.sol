@@ -14,6 +14,9 @@ contract PaymentSplit is ERC20, ERC20Permit {
     IERC20 public immutable _asset;
     CreatorMarketRouter immutable _router;
 
+    uint256 public lastCallReleaseTime; // Stores the timestamp of the last callRelease invocation
+    uint256 private constant IntervalTimeForRelease = 30 minutes;
+
     uint256 public totalReleased; // Total amount released to beneficiaries
 
     // Record the last height of the fund pool when each beneficiary claimed,height = totalReceived (when claimed)
@@ -89,7 +92,7 @@ contract PaymentSplit is ERC20, ERC20Permit {
 
     // Beneficiary claims the allocated funds
     function claim(address _account) public virtual returns (uint256) {
-        callRelease();
+        conditionalCallRelease();
 
         uint256 payment = 0;
         // Check if the beneficiary is valid
@@ -146,5 +149,15 @@ contract PaymentSplit is ERC20, ERC20Permit {
             }
         }
         emit ReleaseCalled(sponsors, totalReceivedFromSponsors);
+    }
+
+    // Function to conditionally call `callRelease` if 30 minutes have passed since the last call
+    function conditionalCallRelease() public {
+        uint256 currentTime = block.timestamp;
+        // Check if the last call was more than 30 minutes ago
+        if (currentTime >= lastCallReleaseTime + IntervalTimeForRelease) {
+            // If 30 minutes have passed, call the `callRelease` function
+            callRelease();
+        }
     }
 }
