@@ -186,9 +186,10 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             int256(salaryDataOf[creator_].currentSps);
 
         if (pendingSps >= int256(totalSps) / 10) {
+            uint256 difference = uint256(pendingSps) - totalSps / 10;
             // The owner's capital can be used to increase employee salaries, but it can only be used once
-            require(salary <= minPendingSps, "salary is too high");
-            minPendingSps -= uint256(salary);
+            require(difference <= minPendingSps, "salary is too high");
+            minPendingSps -= difference;
         }
 
         updateDataOf[creator_].updateTime = block.timestamp + waitingTime;
