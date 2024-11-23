@@ -30,7 +30,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     // last timestamp of total accumulated salary update
     uint256 private lastReleaseAt;
     // waiting time before salary adjustment
-    // it should be 30 days, but now adjustment it to 1 days for testing 
+    // it should be 30 days, but now adjustment it to 1 days for testing
     uint256 private constant waitingTime = 1 days;
 
     struct SalaryData {
@@ -185,7 +185,11 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             int256(salary) -
             int256(salaryDataOf[creator_].currentSps);
 
-        _validateUpdateSalary();
+        if (pendingSps >= int256(totalSps) / 10) {
+            // The owner's capital can be used to increase employee salaries, but it can only be used once
+            require(salary <= minPendingSps, "salary is too high");
+            minPendingSps -= uint256(salary);
+        }
 
         updateDataOf[creator_].updateTime = block.timestamp + waitingTime;
         updateDataOf[creator_].expectedSps = salary;
@@ -196,15 +200,6 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             spsToSalary(salaryDataOf[creator_].currentSps),
             amount
         );
-    }
-
-    function _validateUpdateSalary() internal {
-        if (pendingSps <= int256(totalSps) / 10) {
-            return; // If true, exit early
-        }
-        // The owner's capital can be used to increase employee salaries, but it can only be used once
-        require(pendingSps <= int256(minPendingSps), "salary is too high");
-        minPendingSps -= uint256(pendingSps);
     }
 
     // The owner's capital can be used to increase employee salaries, but it can only be used once
