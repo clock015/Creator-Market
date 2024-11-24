@@ -165,31 +165,37 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     // Schedule salary update
     function updateSalary(address creator_, uint256 amount) public onlyOwner {
-        require(creator_ != _company, "can not release to company");
-        require(
-            updateDataOf[creator_].updateTime == 0,
-            "salary is waiting update"
-        );
+        uint256 updateTime = updateDataOf[creator_].updateTime;
         uint256 salary = salaryToSps(amount);
-        require(
-            salary != salaryDataOf[creator_].currentSps,
-            "salary is equal to old one"
-        );
+        uint256 currentSps = salaryDataOf[creator_].currentSps;
+        require(creator_ != _company, "can not release to company");
+        require(updateTime == 0, "salary is waiting update");
+        require(salary != currentSps, "salary is equal to old one");
 
         require(
             salary <= uint256(type(int256).max),
             "Value exceeds int256 max range"
         );
-        pendingSps =
-            pendingSps +
-            int256(salary) -
-            int256(salaryDataOf[creator_].currentSps);
 
-        if (pendingSps >= int256(totalSps) / 10) {
-            uint256 difference = uint256(pendingSps) - totalSps / 10;
-            // The owner's capital can be used to increase employee salaries, but it can only be used once
-            require(difference <= minPendingSps, "salary is too high");
-            minPendingSps -= difference;
+        int256 differenceSps = int256(salary) - int256(currentSps);
+        int256 newPendingSps = pendingSps + differenceSps;
+        uint256 limitSps = totalSps / 10;
+
+        if (newPendingSps >= int256(limitSps)) {
+            if (pendingSps >= int256(limitSps)) {
+                require(
+                    differenceSps <= int256(minPendingSps),
+                    "salary is too high"
+                );
+                if (differenceSps > 0) {
+                    minPendingSps -= uint256(differenceSps);
+                }
+            } else {
+                uint256 difference = uint256(newPendingSps) - limitSps;
+                // The owner's capital can be used to increase employee salaries, but it can only be used once
+                require(difference <= minPendingSps, "salary is too high");
+                minPendingSps -= difference;
+            }
         }
 
         updateDataOf[creator_].updateTime = block.timestamp + waitingTime;
@@ -197,8 +203,8 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
         emit SalaryUpdateScheduled(
             creator_,
-            updateDataOf[creator_].updateTime,
-            spsToSalary(salaryDataOf[creator_].currentSps),
+            updateTime,
+            spsToSalary(currentSps),
             amount
         );
     }
