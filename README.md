@@ -5,9 +5,13 @@ smart contract usage:
 clone folder "contracts" to Remix
 
 front-end usage:
+
   install：
+  
   `npm install`
+  
   run:
+  
   `npm run dev`
 
 TODO：
