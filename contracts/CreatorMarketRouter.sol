@@ -171,8 +171,8 @@ contract CreatorMarketRouter {
     ) public view returns (address[] memory) {
         return companiesOf[creator];
     }
-    
-    function getcompaniesFoundedBy(
+
+    function getCompaniesFoundedBy(
         address creator
     ) public view returns (address[] memory) {
         return companiesFoundedBy[creator];

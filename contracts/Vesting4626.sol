@@ -293,16 +293,10 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     function callAllClaim() public {
         // read companies from router，and then call claim function of companies
         address[] memory companies = _router.getCompaniesOf(address(this));
-        uint256 totalPayment = 0;
         for (uint256 i = 0; i < companies.length; i++) {
-            (bool success, bytes memory data) = companies[i].call(
+            (bool success, ) = companies[i].call(
                 abi.encodeWithSignature("claim(address)", address(this))
             );
-
-            if (success) {
-                uint256 payment = abi.decode(data, (uint256));
-                totalPayment += payment;
-            }
         }
 
         emit TotalAssetsAndSupplyUpdated(

@@ -11,13 +11,13 @@ interface ICreatorMarketRouter {
         address indexed sponsor,
         bool isAdded
     );
-    
+
     event CompanyUpdated(
         address indexed creator,
         address indexed company,
         bool isAdded
     );
-    
+
     // Functions
     // Function to create a new company and sponsor
     function newCompany(
@@ -38,19 +38,25 @@ interface ICreatorMarketRouter {
     function deleteCompaniesOf(address creator) external;
 
     // View function to get the list of sponsors of a creator
-    function getSponsorsOf(address creator) external view returns (address[] memory);
+    function getSponsorsOf(
+        address creator
+    ) external view returns (address[] memory);
 
     // View function to get the list of companies of a creator
-    function getCompaniesOf(address creator) external view returns (address[] memory);
+    function getCompaniesOf(
+        address creator
+    ) external view returns (address[] memory);
 
     // View function to get the list of companies founded by a creator
-    function getcompaniesFoundedBy(address creator) external view returns (address[] memory);
+    function getCompaniesFoundedBy(
+        address creator
+    ) external view returns (address[] memory);
 
     // Public functions to access mappings for checking if an address is a company or sponsor
     function isCompany(address company) external view returns (bool);
 
     function isSponsor(address sponsor) external view returns (bool);
-    
+
     // Public function to get the equity holder for a company
     function equityOf(address company) external view returns (address);
 }
