@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { ethers } from 'ethers';
 import { CreatorMarketRouterABI, PaymentSplitABI, PublicV4626ABI, CreatorMarketRouterADDRESS } from '../contract';
 import { MYERC20ABI, MYERC20ADDRESS } from '../contract';
@@ -45,6 +46,27 @@ export const GlobalContextProvider = ({ children }) => {
 
   const [isOwner, setIsOwner] = useState(false);
 
+  // Router
+  const router = useRouter();
+  const fetchRouter = () => {
+    const { companyAddress } = router.query;  // 获取 URL 中的 `address` 参数
+    console.log("companyAddress", companyAddress);
+    if (companyAddress) {
+      setPaymentSplitAddress(companyAddress);
+    }
+  }
+
+  const fetchLocalStorage = () => {
+    const localPaymentSplitAddress = localStorage.getItem('paymentSplitAddress');
+    // const localCreatorAddress = localStorage.getItem('creatorAddress');
+    if (localPaymentSplitAddress) {
+      setPaymentSplitAddress(localPaymentSplitAddress)
+    }
+    // if (localCreatorAddress) {
+    //   setCreatorAddress(localCreatorAddress)
+    // }
+  }
+
   //* 获取地址
   const updateCurrentWalletAddress = async () => {
     if (window.ethereum) {
@@ -79,11 +101,12 @@ export const GlobalContextProvider = ({ children }) => {
     switchChain();
 
     // 使用测试地址
-    // const testPaymentSplitAddress = '0x7b10C8cA11b12e08cb0CE3c67B8F559CF58533Ad'
-    // const testPublicV4626Address = '0x3537E1aE5fBFAb3Cd1d6Ced8d20456A9A4742452'
-
-    // setPaymentSplitAddress(testPaymentSplitAddress)
-    // setPublicV4626Address(testPublicV4626Address)
+    const testPaymentSplitAddress = '0x1a03146780e7fb9e60e3709FA1373EcD970cdAdf'
+    fetchLocalStorage();
+    if (!paymentSplitAddress) {
+      setPaymentSplitAddress(testPaymentSplitAddress)
+    }
+    fetchRouter();
 
     const newChainId = await window?.ethereum?.request({ method: 'eth_chainId' });
     if (newChainId) setChainId(parseInt(newChainId, 16));
@@ -450,6 +473,7 @@ export const GlobalContextProvider = ({ children }) => {
 
   // 每次paymentSplitAddress或publicV4626Address更新时只更新相关合约
   useEffect(() => {
+    localStorage.setItem('paymentSplitAddress', paymentSplitAddress);
     updatePaymentSplitContract(provider);
   }, [paymentSplitAddress, provider]);
 
@@ -473,6 +497,7 @@ export const GlobalContextProvider = ({ children }) => {
   }, [publicV4626Contract, decimals]);
 
   useEffect(() => {
+    localStorage.setItem('creatorAddress', creatorAddress);
     fetchCompanies();
   }, [creatorAddress]);
 
