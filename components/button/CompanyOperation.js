@@ -93,12 +93,19 @@ const OwnerManagementPanel = ({
                                 const currentTotalSps = await publicV4626Contract.totalSps();
                                 const currentPendingSps = await publicV4626Contract.pendingSps();
                                 const currentMinPendingSps = await publicV4626Contract.minPendingSps();
-                                const normalizedTotalSps = parseFloat(ethers.utils.formatUnits(currentTotalSps.toString(), assetsDecimals));
-                                const normalizedPendingSps = parseFloat(ethers.utils.formatUnits(currentPendingSps.toString(), assetsDecimals));
-                                const normalizedMinPendingSps = parseFloat(ethers.utils.formatUnits(currentMinPendingSps.toString(), assetsDecimals));
+                                const normalizedTotalSps =
+                                    parseFloat(ethers.utils.formatUnits(currentTotalSps.toString(), assetsDecimals));
+                                const normalizedPendingSps =
+                                    parseFloat(ethers.utils.formatUnits(currentPendingSps.toString(), assetsDecimals));
+                                const normalizedMinPendingSps =
+                                    parseFloat(ethers.utils.formatUnits(currentMinPendingSps.toString(), assetsDecimals));
+                                console.log(normalizedTotalSps, " and ", normalizedPendingSps)
                                 let amount;
                                 if (normalizedTotalSps >= normalizedPendingSps * 10) {
-                                    amount = normalizedMinPendingSps * 86400 * 30 + normalizedTotalSps * 8640 * 30 - normalizedPendingSps * 86400 * 30;
+                                    amount =
+                                        normalizedMinPendingSps * 86400 * 30
+                                        + normalizedTotalSps * 8640 * 30
+                                        - normalizedPendingSps * 86400 * 30;
                                 } else {
                                     amount = normalizedMinPendingSps * 86400 * 30;
                                 }

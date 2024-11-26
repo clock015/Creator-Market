@@ -305,7 +305,6 @@ export const GlobalContextProvider = ({ children }) => {
       // 获取区块链当前时间
       const currentBlock = await provider.getBlock("latest"); // 获取最新区块
       const currentTime = currentBlock.timestamp; // 当前区块链时间（单位：秒）
-      console.log(currentTime)
 
       // 获取当前 totalSps
       const currentTotalSps = await publicV4626Contract.totalSps();
@@ -317,7 +316,7 @@ export const GlobalContextProvider = ({ children }) => {
           totalSps:
             parseFloat(
               ethers.utils.formatUnits(currentTotalSps, decimals - 8)
-            ).toFixed(4), // 保留2位小数
+            ), // 保留2位小数
         },
       ];
 
@@ -348,7 +347,7 @@ export const GlobalContextProvider = ({ children }) => {
       let previousTotalSps =
         parseFloat(
           ethers.utils.formatUnits(currentTotalSps, decimals - 8)
-        ).toFixed(4); // 转换为浮点数
+        ); // 转换为浮点数
 
       for (const event of futureEvents) {
         const { updateTime, currentAmount, pendingAmount } = event.args;
@@ -357,11 +356,11 @@ export const GlobalContextProvider = ({ children }) => {
         const currentSps =
           parseFloat(
             ethers.utils.formatUnits(currentAmount, decimals - 8)
-          ).toFixed(4) / 86400 / 30; // currentAmount 换算为每秒
+          ) / 86400 / 30; // currentAmount 换算为每秒
         const pendingSps =
           parseFloat(
             ethers.utils.formatUnits(pendingAmount, decimals - 8)
-          ).toFixed(4) / 86400 / 30; // pendingAmount 换算为每秒
+          ) / 86400 / 30; // pendingAmount 换算为每秒
 
         // 计算下一个 totalSps
         const nextTotalSps = previousTotalSps - currentSps + pendingSps;

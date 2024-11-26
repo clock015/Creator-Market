@@ -200,6 +200,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             }
         }
 
+        pendingSps = newPendingSps;
         updateDataOf[creator_].updateTime = block.timestamp + waitingTime;
         updateDataOf[creator_].expectedSps = salary;
 
@@ -252,8 +253,8 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             salaryDataOf[creator_].currentSps +
             updateDataOf[creator_].expectedSps;
         pendingSps =
-            pendingSps +
-            int256(updateDataOf[creator_].expectedSps) -
+            pendingSps -
+            int256(updateDataOf[creator_].expectedSps) +
             int256(salaryDataOf[creator_].currentSps);
         salaryDataOf[creator_].currentSps = updateDataOf[creator_].expectedSps;
         delete updateDataOf[creator_];

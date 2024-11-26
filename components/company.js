@@ -19,8 +19,6 @@ const CompanyDashboard = () => {
     futureSpsData
   } = useGlobalContext();
 
-  console.log(futureSpsData)
-
   const calculateChartData = () => {
     let testData = [...futureSpsData];
 
@@ -33,6 +31,7 @@ const CompanyDashboard = () => {
       };
       testData.push(newItem);
     }
+    console.log(testData)
 
     let previousValue = 0; // 初始化前一个累计值为 0
     const cumulativeData = []; // 存储最终的累计数据
