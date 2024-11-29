@@ -7,10 +7,11 @@ import { useState } from 'react';
 
 import { useGlobalContext } from '../context';
 
-import CompanyDashboard from '../components/company';
+import FutrueExpense from '../components/futrueExpense';
 import TimeScaledCharts from '../components/assetsAndShares';
 import SharesPieChart from '../components/sharesPieChart';
 import AddressCompanySelector from '../components/companySelector';
+import SalaryUpdateTable from '../components/SalaryUpdateList';
 
 import { TokenOperations, TradingPanel, OwnerManagementPanel, ReleasableFundsContainer, NewCompanyButton } from '../components/button';
 
@@ -90,7 +91,7 @@ export default function Home({ }) {
           </div>
 
           <div className="chart-container p-4" >
-            <CompanyDashboard />
+            <FutrueExpense />
           </div>
 
           <div className="chart-container p-4" >
@@ -102,6 +103,9 @@ export default function Home({ }) {
           </div>
           <div className="chart-container p-4" >
             <OwnerManagementPanel></OwnerManagementPanel>
+          </div>
+          <div className="chart-container p-4" >
+            <SalaryUpdateTable></SalaryUpdateTable>
           </div>
           <div className="chart-container p-4" >
             <ReleasableFundsContainer></ReleasableFundsContainer>

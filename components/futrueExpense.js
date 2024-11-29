@@ -12,7 +12,7 @@ const formatYAxis = (value) => {
   return value.toFixed(1);
 };
 
-const CompanyDashboard = () => {
+const FutrueExpense = () => {
   const [chartData, setChartData] = useState([]);
 
   const {
@@ -96,4 +96,4 @@ const CompanyDashboard = () => {
   );
 };
 
-export default CompanyDashboard;
+export default FutrueExpense;

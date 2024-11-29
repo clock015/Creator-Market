@@ -33,6 +33,8 @@ export const GlobalContextProvider = ({ children }) => {
 
   const [rawData, setRawData] = useState([]);
   const [futureSpsData, setFutureSpsData] = useState([]);
+  const [salaryScheduled, setSalaryScheduled] = useState([]);
+  const [salaryArray, setSalaryArray] = useState([]);
 
   const [limits, setLimits] = useState({
     maxDeposit: 0,
@@ -319,6 +321,81 @@ export const GlobalContextProvider = ({ children }) => {
     }
   };
 
+  // 拉取工资更改事件
+  const fetchSalaryUpdated = async () => {
+    if (!publicV4626Contract) return;
+    if (!decimals) return;
+    try {
+      // 获取 SalaryUpdateScheduled 事件的日志
+      const topic = ethers.utils.id(
+        "SalaryUpdateFinished(address,uint256,uint256)"
+      );
+      const filter = {
+        address: publicV4626Contract.address,
+        topics: [topic],
+        fromBlock: 0, // 从合约部署的区块开始
+        toBlock: "latest", // 到最新区块
+      };
+
+      // 获取日志数据
+      const logs = await provider.getLogs(filter);
+
+      // 解析日志数据
+      const iface = new ethers.utils.Interface(PublicV4626ABI);
+      const parsedLogs = logs.map((log) => iface.parseLog(log));
+
+      let salaryUpdateFinished = []
+      // 过滤出未生效的事件（updateTime > 当前时间）
+      parsedLogs.forEach(
+        (event) => {
+          let { creator, amount, timestamp } = event.args;
+          timestamp = timestamp.toNumber()
+          amount = parseFloat(
+            ethers.utils.formatUnits(amount, decimals - 8)
+          )
+          salaryUpdateFinished.push({ creator, amount, timestamp })
+        }
+      );
+      console.log(salaryUpdateFinished)
+
+      // 合并工资更改事件数组
+      let salaryUpdateArray = [];
+
+      // 合并两个数组的指针，用于循环
+      let i = 0, j = 0;
+
+      while (i < salaryScheduled.length || j < salaryUpdateFinished.length) {
+
+        let aObj = salaryScheduled[i];
+        let bObj = salaryUpdateFinished[j];
+
+        if (!bObj || (aObj && aObj.updateTime <= bObj.timestamp)) {
+          // A 数组的对象更早或 B 数组已经遍历完
+          let newObj = { ...aObj, finishTime: 0 };
+          salaryUpdateArray.push(newObj);
+          i++;
+        } else {
+          // B 数组的对象更早
+          let matchObj = salaryUpdateArray.find(obj => obj.creator === bObj.creator && obj.finishTime === 0);
+
+          if (matchObj) {
+            // 如果找到 creator 相同且 updateTime 为 0 的对象
+            matchObj.finishTime = bObj.timestamp;  // 更新该对象的 updateTime
+          }
+
+          j++;
+        }
+      }
+
+      console.log("salaryUpdateArray", salaryUpdateArray);
+      setSalaryArray(salaryUpdateArray)
+
+    } catch (error) {
+      console.error("Error fetchSalaryUpdated:", error);
+      return [];
+    }
+  }
+
   // 计算未来支出曲线
   const calculateFutureSps = async () => {
     if (!publicV4626Contract) return;
@@ -357,14 +434,28 @@ export const GlobalContextProvider = ({ children }) => {
       // 获取日志数据
       const logs = await provider.getLogs(filter);
 
+
       // 解析日志数据
       const iface = new ethers.utils.Interface(PublicV4626ABI);
       const parsedLogs = logs.map((log) => iface.parseLog(log));
 
+      let salaryUpdateScheduled = []
       // 过滤出未生效的事件（updateTime > 当前时间）
       const futureEvents = parsedLogs.filter(
-        (event) => event.args.updateTime.toNumber() > currentTime
+        (event) => {
+          let { creator, updateTime, currentAmount, pendingAmount } = event.args;
+          updateTime = updateTime.toNumber()
+          currentAmount = parseFloat(
+            ethers.utils.formatUnits(currentAmount, decimals - 8)
+          )
+          pendingAmount = parseFloat(
+            ethers.utils.formatUnits(pendingAmount, decimals - 8)
+          )
+          salaryUpdateScheduled.push({ creator, updateTime, currentAmount, pendingAmount })
+          if (event.args.updateTime.toNumber() > currentTime) return true;
+        }
       );
+      setSalaryScheduled(salaryUpdateScheduled)
 
       // 计算未来的 totalSps
       let previousTotalSps =
@@ -497,6 +588,10 @@ export const GlobalContextProvider = ({ children }) => {
   }, [publicV4626Contract, decimals]);
 
   useEffect(() => {
+    fetchSalaryUpdated();
+  }, [salaryScheduled]);
+
+  useEffect(() => {
     localStorage.setItem('creatorAddress', creatorAddress);
     fetchCompanies();
   }, [creatorAddress]);
@@ -531,7 +626,8 @@ export const GlobalContextProvider = ({ children }) => {
         assetsDecimals,
         fetchAssetsDetails,
         decimals,
-        isOwner
+        isOwner,
+        salaryArray
       }}
     >
       {children}
