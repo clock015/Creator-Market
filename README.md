@@ -3,7 +3,7 @@ This smart contract protocol attempts to build a decentralized company, describi
 
 Smart Contract Image：
 
-![Creator-Market](./Creator-Market.jpg)
+![Creator-Market](./public/Creator-Market.jpg)
 
 smart contract usage:
 

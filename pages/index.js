@@ -29,7 +29,6 @@ export default function Home({ }) {
     setPublicV4626Address,
     publicV4626Owner
   } = useGlobalContext();
-  const [count, setCount] = useState(0);
 
 
 
@@ -45,6 +44,14 @@ export default function Home({ }) {
             <p className='text-blue-600'>Click here to go to the smart contract repository.</p>
           </Link>
           Your current chainId is {chainId}
+          <div className='flex flex-col justify-center items-center my-4'>
+            <h2>Smart contract logic diagram:</h2>
+            <img
+              src="./Creator-Market.jpg"
+              alt="Creator Market"
+              className="max-w-full max-h-90"
+            />
+          </div>
         </div>
         <div className='p-4 flex items-center font-semibold shadow-lg rounded-lg w-full sm:w-3/4 my-4'>
           <div className='w-full min-h-fit px-2 py-2 rounded-full flex items-center'>
