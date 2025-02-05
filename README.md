@@ -1,5 +1,7 @@
 # Creator-Market
-This smart contract protocol attempts to build a decentralized company, describing human collaboration relationships through smart contracts, incorporating value production into the blockchain, and facilitating the deconstruction, splitting, and decentralization of the company.
+This smart contract protocol builds a decentralized company model that allows for investing in the real world by investing in creators. Since every node in the system can be invested in and can grow, this model is inherently decentralized and divisible, greatly enhancing investment efficiency.
+
+Build a decentralized version of Patreon, Steam, and YouTube.
 
 Smart Contract Image：
 
