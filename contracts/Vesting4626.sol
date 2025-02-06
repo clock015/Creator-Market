@@ -35,22 +35,22 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
 
     /// @notice Individual salary configuration per address
     struct SalaryData {
-        uint256 currentSps;     // Current salary per second (wei/sec)
-        uint256 lastReleaseAt;  // Last salary release timestamp
+        uint256 currentSps; // Current salary per second (wei/sec)
+        uint256 lastReleaseAt; // Last salary release timestamp
     }
     mapping(address => SalaryData) public salaryDataOf;
 
     /// @notice Pending salary updates scheduled for addresses
     struct UpdateData {
-        uint256 expectedSps;    // New salary per second after update
-        uint256 updateTime;     // Effective timestamp for update
+        uint256 expectedSps; // New salary per second after update
+        uint256 updateTime; // Effective timestamp for update
     }
     mapping(address => UpdateData) public updateDataOf;
 
     /// @notice Total deposited assets per address (in underlying token)
-    mapping (address => uint256) public totalDeposit;
+    mapping(address => uint256) public totalDeposit;
     /// @notice Temporarily record the pending salary under bankruptcy status
-    mapping (address => uint256) public pendingRelease;
+    mapping(address => uint256) public pendingRelease;
 
     // Events
     event SalaryReleased(address indexed creator, uint256 amount);
@@ -78,8 +78,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         IERC20 token_,
         string memory name,
         string memory symbol
-    ) Ownable(owner_) ERC4626(token_) ERC20(name, symbol) {
-    }
+    ) Ownable(owner_) ERC4626(token_) ERC20(name, symbol) {}
 
     /**
      * @notice Calculate unvested investment amount for an account
@@ -87,7 +86,9 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
      * @return Investment amount contributed by the account
      */
     function investmentOfV2(address account) public view returns (uint256) {
-        return totalDeposit[account] - _convertToAssets(balanceOf(account), Math.Rounding.Floor);
+        return
+            totalDeposit[account] -
+            _convertToAssets(balanceOf(account), Math.Rounding.Floor);
     }
 
     /**
@@ -105,9 +106,9 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
         uint256 balance = IERC20(asset()).balanceOf(address(this));
         uint256 totalSalary = totalAccumulatedSalary();
         uint256 totalReleased_ = totalReleased;
-        if(balance + totalReleased_ > totalSalary) {
+        if (balance + totalReleased_ > totalSalary) {
             return totalSalary;
-        }else {
+        } else {
             return balance + totalReleased_;
         }
     }
@@ -122,7 +123,9 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     ) public view virtual returns (uint256) {
         uint256 timeElapsed = block.timestamp -
             salaryDataOf[creator_].lastReleaseAt;
-        return Math.mulDiv(salaryDataOf[creator_].currentSps, timeElapsed, 1) + pendingRelease[creator_];
+        return
+            Math.mulDiv(salaryDataOf[creator_].currentSps, timeElapsed, 1) +
+            pendingRelease[creator_];
     }
 
     /**
@@ -132,7 +135,8 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     function totalAccumulatedSalary() public view returns (uint256) {
         uint256 timeDifference = block.timestamp - lastReleaseAt;
         return
-            oldTotalAccumulatedSalary + Math.mulDiv(totalSps, timeDifference, 1);
+            oldTotalAccumulatedSalary +
+            Math.mulDiv(totalSps, timeDifference, 1);
     }
 
     /**
@@ -211,7 +215,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             salary <= uint256(type(int256).max),
             "Value exceeds int256 max range"
         );
-        
+
         updateDataOf[creator_].updateTime = block.timestamp + waitingTime;
         updateDataOf[creator_].expectedSps = salary;
 
@@ -244,7 +248,7 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             totalSps -
             salaryDataOf[creator_].currentSps +
             updateDataOf[creator_].expectedSps;
-        
+
         salaryDataOf[creator_].currentSps = updateDataOf[creator_].expectedSps;
         delete updateDataOf[creator_];
 
@@ -277,11 +281,28 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
     ) internal virtual override {
         uint256 balance = IERC20(asset()).balanceOf(address(this));
         uint256 pendingSalary = totalPendingSalary();
-        if(balance + assets > pendingSalary){
+        if (balance > pendingSalary) {
             super._deposit(caller, receiver, assets, shares);
-        }else {
-            SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
-            emit Deposit(caller, receiver, assets, shares);
+        } else if (balance + assets > pendingSalary) {
+            uint256 adjustedAssets = balance + assets - pendingSalary;
+            SafeERC20.safeTransferFrom(
+                IERC20(asset()),
+                caller,
+                address(this),
+                assets
+            );
+            uint256 adjustedShares = previewDeposit(adjustedAssets);
+
+            _mint(receiver, adjustedShares);
+            emit Deposit(caller, receiver, assets, adjustedShares);
+        } else {
+            SafeERC20.safeTransferFrom(
+                IERC20(asset()),
+                caller,
+                address(this),
+                assets
+            );
+            emit Deposit(caller, receiver, assets, 0);
         }
 
         totalDeposit[receiver] += assets;
@@ -307,7 +328,11 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
      * @dev Internal hook for share transfers
      * @notice Updates deposit tracking during transfers
      */
-    function _update(address from, address to, uint256 value) internal virtual override {
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    ) internal virtual override {
         uint256 assets = _convertToAssets(value, Math.Rounding.Floor);
 
         super._update(from, to, value);
