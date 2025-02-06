@@ -285,14 +285,14 @@ contract Vesting4626 is Context, Ownable, ERC4626 {
             super._deposit(caller, receiver, assets, shares);
         } else if (balance + assets > pendingSalary) {
             uint256 adjustedAssets = balance + assets - pendingSalary;
+            uint256 adjustedShares = previewDeposit(adjustedAssets);
+
             SafeERC20.safeTransferFrom(
                 IERC20(asset()),
                 caller,
                 address(this),
                 assets
             );
-            uint256 adjustedShares = previewDeposit(adjustedAssets);
-
             _mint(receiver, adjustedShares);
             emit Deposit(caller, receiver, assets, adjustedShares);
         } else {
